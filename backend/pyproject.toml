@@ -2,6 +2,23 @@
 name = "complyscan-api"
 version = "0.8.0"
 requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi==0.116.1",
+    "uvicorn==0.35.0",
+    "python-multipart==0.0.20",
+    "Pillow==11.3.0",
+    "paddleocr==3.7.0",
+    "paddlex[ocr-core]==3.7.2",
+    "onnxruntime==1.29.0",
+    "opencv-contrib-python==4.10.0.84",
+    "numpy==2.3.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.2",
+    "httpx==0.28.1",
+]
 
 [tool.pytest.ini_options]
 addopts = "--strict-config"
@@ -11,7 +28,6 @@ filterwarnings = [
     "error::DeprecationWarning",
     "error::FutureWarning",
 ]
-
 
 [tool.vercel]
 entrypoint = "app.main:app"
