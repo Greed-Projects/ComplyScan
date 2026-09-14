@@ -12,9 +12,10 @@ from app.ocr.targeted_recovery import (
 )
 
 
-FIXTURE = Path(__file__).parent / "fixtures" / "maggi-mrp-under-seal.jpeg"
+SAMPLES = Path(__file__).resolve().parents[2] / "samples"
+FIXTURE = SAMPLES / "maggi-mrp-under-seal.jpeg"
 HANDHELD_FIXTURE = (
-    Path(__file__).parent / "fixtures" / "maggi-mrp-under-seal-handheld.jpeg"
+    SAMPLES / "maggi-mrp-under-seal-handheld.jpeg"
 )
 REFERENCE_TEXT = """
 FOR MRP (incl. of all taxes):
@@ -542,7 +543,7 @@ def test_mrp_candidate_parser_still_accepts_simple_currency_amount():
     assert _parse_currency_value("Re. 60")[:2] == ("INR", "60")
 
 EXIF_ROTATED_FIXTURE = (
-    Path(__file__).parent / "fixtures" / "maggi-mrp-under-seal-exif-rotated.jpeg"
+    SAMPLES / "maggi-mrp-under-seal-exif-rotated.jpeg"
 )
 
 
