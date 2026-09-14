@@ -43,7 +43,7 @@ function Get-PythonRuntimeInfo {
     }
 }
 
-function Resolve-PackCheckPython {
+function Resolve-ComplyScanPython {
     param(
         [string] $RequestedExecutable
     )
@@ -203,7 +203,7 @@ function Resolve-PackCheckPython {
     }
 
     throw @"
-PackCheck requires CPython 3.13.x, but no compatible interpreter was found.
+ComplyScan requires CPython 3.13.x, but no compatible interpreter was found.
 Detected Python installations:
 $detectedText
 
@@ -266,14 +266,14 @@ function Invoke-NpmInstallChecked {
     }
 }
 
-Write-Host "=== PackCheck AI Windows bootstrap ===" -ForegroundColor Cyan
+Write-Host "=== ComplyScan Windows bootstrap ===" -ForegroundColor Cyan
 Write-Host "Policy: pinned runtime + fail-fast setup + no deprecation warnings." -ForegroundColor DarkGray
 
 foreach ($command in @("node", "npm.cmd")) {
     Assert-CommandAvailable -Command $command
 }
 
-$pythonSelection = Resolve-PackCheckPython -RequestedExecutable $PythonExecutable
+$pythonSelection = Resolve-ComplyScanPython -RequestedExecutable $PythonExecutable
 $Python313 = $pythonSelection.Executable
 $pythonVersion = "Python $($pythonSelection.Runtime.Version)"
 $nodeVersionText = (& node --version).ToString().Trim()
@@ -288,11 +288,11 @@ $nodeMajor = [int](($nodeVersionText.TrimStart('v') -split '\.')[0])
 $npmMajor = [int](($npmVersionText -split '\.')[0])
 
 if ($nodeMajor -ne 24) {
-    throw "PackCheck is validated for Node.js 24.x LTS. Found: $nodeVersionText"
+    throw "ComplyScan is validated for Node.js 24.x LTS. Found: $nodeVersionText"
 }
 
 if ($npmMajor -ne 11) {
-    throw "PackCheck is validated for npm 11.x. Found: $npmVersionText"
+    throw "ComplyScan is validated for npm 11.x. Found: $npmVersionText"
 }
 
 Write-Host "`n[1/3] Preparing Python backend (ONNX Runtime; no PaddlePaddle)..." -ForegroundColor Yellow
