@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Annotated
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -31,9 +32,20 @@ app = FastAPI(
     version="0.8.0",
 )
 
+_configured_origins = [
+    origin.strip()
+    for origin in os.getenv("PACKCHECK_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+_allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    *_configured_origins,
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=list(dict.fromkeys(_allowed_origins)),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

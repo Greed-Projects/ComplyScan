@@ -122,7 +122,7 @@ type AnalysisResponse = {
   disclaimer: string;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 const MAX_IMAGES = 6;
 
 const DEMO_TEXT = `Product Name: Cleaning Powder
