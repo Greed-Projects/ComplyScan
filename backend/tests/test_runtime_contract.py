@@ -9,6 +9,8 @@ def test_requirements_pin_onnx_runtime_and_exclude_paddlepaddle():
     assert "onnxruntime==1.29.0" in requirements
     assert "paddleocr==3.7.0" in requirements
     assert "paddlex[ocr-core]==3.7.2" in requirements
+    assert "opencv-contrib-python-headless==4.10.0.84" in requirements
+    assert "opencv-contrib-python==4.10.0.84" not in requirements
     assert not any(line.startswith("paddlepaddle") for line in requirements)
 
 
