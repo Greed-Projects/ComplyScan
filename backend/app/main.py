@@ -27,14 +27,14 @@ from .ocr.targeted_recovery import recover_referenced_declarations
 from .rules import RULESET_ID, evaluate_declarations
 
 app = FastAPI(
-    title="PackCheck AI Prototype API",
+    title="ComplyScan Prototype API",
     description="SIH 2026 / Problem Statement 26034 prototype",
     version="0.8.0",
 )
 
 _configured_origins = [
     origin.strip()
-    for origin in os.getenv("PACKCHECK_ALLOWED_ORIGINS", "").split(",")
+    for origin in os.getenv("COMPLYSCAN_ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
 ]
 _allowed_origins = [
@@ -169,7 +169,7 @@ def _analyze_image(
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "packcheck-api", "version": "0.8.0", "ruleset": RULESET_ID}
+    return {"status": "ok", "service": "complyscan-api", "version": "0.8.0", "ruleset": RULESET_ID}
 
 
 @app.post("/api/analyze", response_model=AnalysisResponse)
