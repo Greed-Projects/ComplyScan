@@ -15,6 +15,10 @@
 - Hardened Net Quantity, Month/Year and MRP extraction with geometry-aware OCR label/value pairing so nutritional values and barcodes are not promoted solely by OCR serialization order.
 - Removed unlabeled gram-value fallback for net quantity; a legal quantity now requires declaration context.
 - Added MRP plausibility filtering and same-line text fallback boundaries to prevent barcode-like numbers from being interpreted as retail price.
+- Added Vercel-only deployment support using separate Next.js and FastAPI projects from the same repository.
+- Added per-image OCR transport plus JSON-only cross-image fusion so hosted multi-view inspections avoid oversized combined multipart requests.
+- Hosted image uploads are capped at 4,000,000 bytes per image without silent recompression; local FastAPI retains the existing 10 MB/image and 40 MB combined limits.
+- Added Vercel Python 3.13/FastAPI configuration and a writable PaddleX model cache under /tmp for serverless OCR initialization.
 
 ## v0.7.0 — Computer Vision / Multi-View OCR Ensemble
 
