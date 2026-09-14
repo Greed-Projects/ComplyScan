@@ -8,12 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .analyzer import analyze_text_with_declarations
 from .extraction import extract_declarations
-from .inspection import merge_image_declarations
+from .inspection import merge_declaration_groups, merge_image_declarations
 from .legal_profiles import PROFILE
 from .models import (
     AnalysisResponse,
     CommodityClass,
     ExtractedDeclaration,
+    FusionRequest,
     ImageMetadata,
     OcrRecoveryTrace,
     OcrRegion,
@@ -60,6 +61,7 @@ DISCLAIMER = (
 MAX_IMAGES = 6
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 MAX_REQUEST_IMAGE_BYTES = 40 * 1024 * 1024
+MAX_VERCEL_IMAGE_BYTES = 4_000_000
 
 
 def _api_region(region, image_id: str | None = None) -> OcrRegion:
@@ -167,9 +169,123 @@ def _analyze_image(
     )
 
 
+def _package_context(
+    imported_product: bool,
+    may_become_unfit_for_human_consumption: bool,
+    dimensions_relevant: bool,
+    package_form: PackageForm,
+    alcoholic_beverage: bool,
+    commodity_class: CommodityClass,
+) -> PackageContext:
+    return PackageContext(
+        imported_product=imported_product,
+        may_become_unfit_for_human_consumption=may_become_unfit_for_human_consumption,
+        dimensions_relevant=dimensions_relevant,
+        package_form=package_form,
+        alcoholic_beverage=alcoholic_beverage,
+        commodity_class=commodity_class,
+    )
+
+
+def _image_size_limit() -> int:
+    return MAX_VERCEL_IMAGE_BYTES if os.getenv("VERCEL") else MAX_IMAGE_BYTES
+
+
+def _image_size_limit_message(file_name: str) -> str:
+    if os.getenv("VERCEL"):
+        return (
+            f"'{file_name}' is larger than the 4 MB hosted-image limit. "
+            "Use a smaller original image rather than relying on silent recompression."
+        )
+    return f"'{file_name}' is larger than the 10 MB per-image limit."
+
+
+def _fused_analysis(
+    images,
+    context: PackageContext,
+) -> AnalysisResponse:
+    combined_text = "\n\n".join(
+        f"--- {image.file_name} ---\n{image.ocr_text.strip()}"
+        for image in images
+        if image.ocr_text.strip()
+    ).strip()
+    declarations = merge_declaration_groups(image.declarations for image in images)
+    checks, summary = evaluate_declarations(combined_text, declarations, context)
+
+    return AnalysisResponse(
+        input_mode="images",
+        file_names=[image.file_name for image in images],
+        image_count=len(images),
+        images=[],
+        ocr_text=combined_text,
+        declarations=declarations,
+        context=context,
+        ruleset=RULESET_ID,
+        rule_profile=PROFILE,
+        summary=summary,
+        checks=checks,
+        disclaimer=DISCLAIMER,
+    )
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "complyscan-api", "version": "0.8.0", "ruleset": RULESET_ID}
+
+
+@app.post("/api/analyze/image", response_model=PackageImageAnalysis)
+async def analyze_single_image(
+    file: Annotated[UploadFile, File()],
+    image_id: Annotated[str, Form()] = "image-1",
+    imported_product: Annotated[bool, Form()] = False,
+    may_become_unfit_for_human_consumption: Annotated[bool, Form()] = False,
+    dimensions_relevant: Annotated[bool, Form()] = False,
+    package_form: Annotated[PackageForm, Form()] = "single",
+    alcoholic_beverage: Annotated[bool, Form()] = False,
+    commodity_class: Annotated[CommodityClass, Form()] = "general",
+) -> PackageImageAnalysis:
+    if not image_id or len(image_id) > 40 or not all(
+        character.isalnum() or character in "-_" for character in image_id
+    ):
+        raise HTTPException(status_code=400, detail="image_id must contain only letters, numbers, '-' or '_'.")
+
+    if file.content_type and not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail=f"'{file.filename or 'upload'}' is not an image file.")
+
+    raw = await file.read()
+    if len(raw) > _image_size_limit():
+        raise HTTPException(
+            status_code=413,
+            detail=_image_size_limit_message(file.filename or "upload"),
+        )
+
+    context = _package_context(
+        imported_product,
+        may_become_unfit_for_human_consumption,
+        dimensions_relevant,
+        package_form,
+        alcoholic_beverage,
+        commodity_class,
+    )
+
+    try:
+        return _analyze_image(
+            raw,
+            file.filename or "package.image",
+            image_id,
+            context,
+            get_ocr_engine(),
+        )
+    except Exception as exc:  # pragma: no cover - environment specific
+        raise HTTPException(
+            status_code=422,
+            detail=f"OCR failed for '{file.filename or 'upload'}': {exc}",
+        ) from exc
+
+
+@app.post("/api/analyze/fuse", response_model=AnalysisResponse)
+async def fuse_analyzed_images(request: FusionRequest) -> AnalysisResponse:
+    return _fused_analysis(request.images, request.context)
 
 
 @app.post("/api/analyze", response_model=AnalysisResponse)
@@ -193,13 +309,13 @@ async def analyze_package(
     if len(uploads) > MAX_IMAGES:
         raise HTTPException(status_code=413, detail=f"A prototype inspection accepts at most {MAX_IMAGES} images.")
 
-    context = PackageContext(
-        imported_product=imported_product,
-        may_become_unfit_for_human_consumption=may_become_unfit_for_human_consumption,
-        dimensions_relevant=dimensions_relevant,
-        package_form=package_form,
-        alcoholic_beverage=alcoholic_beverage,
-        commodity_class=commodity_class,
+    context = _package_context(
+        imported_product,
+        may_become_unfit_for_human_consumption,
+        dimensions_relevant,
+        package_form,
+        alcoholic_beverage,
+        commodity_class,
     )
 
     if manual_text:
@@ -226,7 +342,10 @@ async def analyze_package(
             raise HTTPException(status_code=415, detail=f"'{upload.filename or 'upload'}' is not an image file.")
         raw = await upload.read()
         if len(raw) > MAX_IMAGE_BYTES:
-            raise HTTPException(status_code=413, detail=f"'{upload.filename or 'upload'}' is larger than the 10 MB per-image limit.")
+            raise HTTPException(
+                status_code=413,
+                detail=f"'{upload.filename or 'upload'}' is larger than the 10 MB per-image limit.",
+            )
         total_bytes += len(raw)
         if total_bytes > MAX_REQUEST_IMAGE_BYTES:
             raise HTTPException(status_code=413, detail="Combined image size is larger than the 40 MB inspection limit.")
