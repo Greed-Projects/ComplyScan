@@ -93,8 +93,8 @@ def test_extract_normalizes_exif_orientation_before_ocr(monkeypatch):
     from PIL import Image
 
     fixture = (
-        Path(__file__).parent
-        / "fixtures"
+        Path(__file__).resolve().parents[2]
+        / "samples"
         / "maggi-mrp-under-seal-exif-rotated.jpeg"
     )
     observed: dict[str, tuple[int, int]] = {}
