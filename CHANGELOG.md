@@ -12,6 +12,9 @@
 - Updated the frontend for multiple file selection, package-view thumbnails, cross-view inspection summary, per-image evidence overlays, and combined JSON reporting.
 - Added request limits of six images, 10 MB per image, and 40 MB combined.
 - Expanded backend automated coverage to 50 tests.
+- Hardened Net Quantity, Month/Year and MRP extraction with geometry-aware OCR label/value pairing so nutritional values and barcodes are not promoted solely by OCR serialization order.
+- Removed unlabeled gram-value fallback for net quantity; a legal quantity now requires declaration context.
+- Added MRP plausibility filtering and same-line text fallback boundaries to prevent barcode-like numbers from being interpreted as retail price.
 
 ## v0.7.0 — Computer Vision / Multi-View OCR Ensemble
 

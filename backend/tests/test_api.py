@@ -60,7 +60,7 @@ async def test_image_analysis_resolves_referenced_mrp_with_targeted_ocr(monkeypa
     import app.main as main_module
     from app.ocr.base import OCRResult, OCRTextRegion
 
-    fixture = Path(__file__).parent / "fixtures" / "maggi-mrp-under-seal.jpeg"
+    fixture = Path(__file__).resolve().parents[2] / "samples" / "maggi-mrp-under-seal.jpeg"
 
     class FakeImageEngine:
         def __init__(self) -> None:
