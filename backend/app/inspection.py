@@ -73,16 +73,13 @@ def _merge_consumer_care(items: list[ExtractedDeclaration]) -> ExtractedDeclarat
     )
 
 
-def merge_image_declarations(images: Iterable[PackageImageAnalysis]) -> list[ExtractedDeclaration]:
-    """Fuse declaration evidence across all photos of one physical package.
-
-    The legal layer receives one fact per declaration key. Repeated matching facts
-    reinforce provenance; conflicting values are retained as review metadata rather
-    than silently choosing a value and claiming compliance.
-    """
+def merge_declaration_groups(
+    declaration_groups: Iterable[Iterable[ExtractedDeclaration]],
+) -> list[ExtractedDeclaration]:
+    """Fuse declaration evidence from one or more views of the same package."""
     groups: dict[str, list[ExtractedDeclaration]] = defaultdict(list)
-    for image in images:
-        for declaration in image.declarations:
+    for declarations in declaration_groups:
+        for declaration in declarations:
             groups[declaration.key].append(declaration)
 
     merged: list[ExtractedDeclaration] = []
@@ -117,3 +114,8 @@ def merge_image_declarations(images: Iterable[PackageImageAnalysis]) -> list[Ext
         )
 
     return merged
+
+
+def merge_image_declarations(images: Iterable[PackageImageAnalysis]) -> list[ExtractedDeclaration]:
+    """Fuse declaration evidence across full per-image analysis results."""
+    return merge_declaration_groups(image.declarations for image in images)

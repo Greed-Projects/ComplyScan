@@ -112,3 +112,20 @@ def test_extract_normalizes_exif_orientation_before_ocr(monkeypatch):
 
     assert (result.width, result.height) == (1600, 902)
     assert observed["size"] == (1600, 902)
+
+
+def test_vercel_runtime_uses_writable_paddlex_cache(monkeypatch):
+    import os
+
+    from app.ocr.paddle_onnx_engine import _configure_paddlex_runtime
+
+    monkeypatch.setenv("VERCEL", "1")
+    monkeypatch.delenv("PADDLE_PDX_CACHE_HOME", raising=False)
+    monkeypatch.delenv("PADDLE_PDX_MODEL_SOURCE", raising=False)
+    monkeypatch.delenv("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", raising=False)
+
+    _configure_paddlex_runtime()
+
+    assert os.environ["PADDLE_PDX_CACHE_HOME"] == "/tmp/complyscan-paddlex"
+    assert os.environ["PADDLE_PDX_MODEL_SOURCE"] == "bos"
+    assert os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] == "1"

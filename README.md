@@ -180,7 +180,10 @@ The current physical-package profile intentionally excludes:
 ```text
 Next.js 16 UI
     |
-    | multipart upload: 1-6 images + package context
+    +-- local: multipart inspection upload (1-6 images)
+    |
+    +-- hosted: one image/request -> /api/analyze/image
+    |            compact JSON fusion -> /api/analyze/fuse
     v
 FastAPI / Python 3.13
     |

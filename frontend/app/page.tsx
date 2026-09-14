@@ -124,6 +124,11 @@ type AnalysisResponse = {
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 const MAX_IMAGES = 6;
+const LOCAL_MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const HOSTED_MAX_IMAGE_BYTES = 4_000_000;
+const LOCAL_API_PATTERN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+const MAX_IMAGE_BYTES = LOCAL_API_PATTERN.test(API_URL) ? LOCAL_MAX_IMAGE_BYTES : HOSTED_MAX_IMAGE_BYTES;
+const MAX_IMAGE_MB = MAX_IMAGE_BYTES / (1024 * 1024);
 
 const DEMO_TEXT = `Product Name: Cleaning Powder
 Manufactured by: Innovate X Consumer Products Pvt. Ltd., Sector 62, Noida, Uttar Pradesh 201309
@@ -187,12 +192,26 @@ export default function Home() {
 
   function replaceFiles(nextFiles: File[]) {
     for (const url of previews) URL.revokeObjectURL(url);
-    const accepted = nextFiles.slice(0, MAX_IMAGES);
+
+    const oversized = nextFiles.filter((file) => file.size > MAX_IMAGE_BYTES);
+    const withinLimit = nextFiles.filter((file) => file.size <= MAX_IMAGE_BYTES);
+    const accepted = withinLimit.slice(0, MAX_IMAGES);
+    const messages: string[] = [];
+
+    if (oversized.length) {
+      messages.push(
+        `${oversized.length} image${oversized.length === 1 ? "" : "s"} exceeded the ${MAX_IMAGE_MB.toFixed(1)} MB ${LOCAL_API_PATTERN.test(API_URL) ? "local" : "hosted"} upload limit and ${oversized.length === 1 ? "was" : "were"} not selected.`,
+      );
+    }
+    if (withinLimit.length > MAX_IMAGES) {
+      messages.push(`Only the first ${MAX_IMAGES} images were selected.`);
+    }
+
     setFiles(accepted);
     setPreviews(accepted.map((file) => URL.createObjectURL(file)));
     setActiveImageIndex(0);
     setResult(null);
-    setError(nextFiles.length > MAX_IMAGES ? `Only the first ${MAX_IMAGES} images were selected.` : "");
+    setError(messages.join(" "));
     if (accepted.length) setManualText("");
   }
 
@@ -225,27 +244,80 @@ export default function Home() {
     setResult(null);
   }
 
-  async function analyze() {
-    if (!canAnalyze) return;
-    setLoading(true);
-    setError("");
-    setResult(null);
-
-    const data = new FormData();
-    for (const file of files) data.append("files", file);
-    if (manualText.trim()) data.append("override_text", manualText.trim());
+  function appendContext(data: FormData) {
     data.append("imported_product", String(legalContext.imported_product));
     data.append("may_become_unfit_for_human_consumption", String(legalContext.may_become_unfit_for_human_consumption));
     data.append("dimensions_relevant", String(legalContext.dimensions_relevant));
     data.append("package_form", legalContext.package_form);
     data.append("alcoholic_beverage", String(legalContext.alcoholic_beverage));
     data.append("commodity_class", legalContext.commodity_class);
+  }
+
+  async function readJson(response: Response) {
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.detail ?? payload.error ?? "Analysis failed");
+    }
+    return payload;
+  }
+
+  async function analyze() {
+    if (!canAnalyze) return;
+    setLoading(true);
+    setError("");
+    setResult(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/analyze`, { method: "POST", body: data });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.detail ?? "Analysis failed");
-      setResult(payload as AnalysisResponse);
+      if (manualText.trim()) {
+        const data = new FormData();
+        data.append("override_text", manualText.trim());
+        appendContext(data);
+
+        const response = await fetch(`${API_URL}/api/analyze`, {
+          method: "POST",
+          body: data,
+        });
+        const payload = await readJson(response);
+        setResult(payload as AnalysisResponse);
+        setActiveImageIndex(0);
+        return;
+      }
+
+      const imageResults: PackageImageAnalysis[] = [];
+      for (const [index, file] of files.entries()) {
+        const data = new FormData();
+        data.append("file", file);
+        data.append("image_id", `image-${index + 1}`);
+        appendContext(data);
+
+        const response = await fetch(`${API_URL}/api/analyze/image`, {
+          method: "POST",
+          body: data,
+        });
+        imageResults.push((await readJson(response)) as PackageImageAnalysis);
+      }
+
+      const response = await fetch(`${API_URL}/api/analyze/fuse`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          context: legalContext,
+          images: imageResults.map((image) => ({
+            image_id: image.image_id,
+            file_name: image.file_name,
+            ocr_text: image.ocr_text,
+            declarations: image.declarations,
+          })),
+        }),
+      });
+      const fused = (await readJson(response)) as AnalysisResponse;
+
+      setResult({
+        ...fused,
+        file_names: imageResults.map((image) => image.file_name),
+        image_count: imageResults.length,
+        images: imageResults,
+      });
       setActiveImageIndex(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not reach the analysis service.");
@@ -341,7 +413,7 @@ export default function Home() {
 
           {error && <div className="errorBox">{error}</div>}
           <button className="primaryButton" disabled={!canAnalyze || loading} onClick={analyze}>{loading ? `Analyzing ${files.length > 1 ? `${files.length} views` : "package"}…` : "Run package inspection"}</button>
-          <p className="firstRunNote">Each image is OCR-processed independently. Difficult referenced regions can trigger the verified CV + direct-recognition fallback before evidence is fused.</p>
+          <p className="firstRunNote">Each image is OCR-processed independently and uploaded as its own request before JSON-only evidence fusion. Difficult referenced regions can still trigger the verified CV + direct-recognition fallback.</p>
         </div>
 
         <div className="panel resultPanel">

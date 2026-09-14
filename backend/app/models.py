@@ -121,6 +121,18 @@ class PackageImageAnalysis(BaseModel):
     declarations: list[ExtractedDeclaration] = Field(default_factory=list)
 
 
+class FusionImageEvidence(BaseModel):
+    image_id: str
+    file_name: str
+    ocr_text: str
+    declarations: list[ExtractedDeclaration] = Field(default_factory=list)
+
+
+class FusionRequest(BaseModel):
+    images: list[FusionImageEvidence] = Field(min_length=1, max_length=6)
+    context: PackageContext
+
+
 class AnalysisResponse(BaseModel):
     input_mode: InputMode
     file_names: list[str] = Field(default_factory=list)
