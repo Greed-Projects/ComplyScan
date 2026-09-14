@@ -5,7 +5,7 @@ $script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $script:BackendRoot = Join-Path $ProjectRoot "backend"
 $script:FrontendRoot = Join-Path $ProjectRoot "frontend"
 $script:BackendPython = Join-Path $BackendRoot ".venv\Scripts\python.exe"
-$script:SampleLabelPath = Join-Path $ProjectRoot "sample-label.png"
+$script:SampleLabelPath = Join-Path $ProjectRoot "samples\sample-label.png"
 
 function Assert-CommandAvailable {
     param(

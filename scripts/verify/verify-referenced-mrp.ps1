@@ -2,7 +2,7 @@
 
 Assert-BackendEnvironment
 
-$fixturePath = Join-Path $BackendRoot "tests\fixtures\maggi-mrp-under-seal.jpeg"
+$fixturePath = Join-Path $ProjectRoot "samples\maggi-mrp-under-seal.jpeg"
 $diagnosticsPath = Join-Path $BackendRoot ".diagnostics\referenced-mrp"
 Assert-FileExists `
     -Path $fixturePath `
