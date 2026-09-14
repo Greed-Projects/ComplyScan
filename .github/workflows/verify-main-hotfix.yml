@@ -1,0 +1,33 @@
+name: Verify backend hotfix
+
+on:
+  push:
+    branches:
+      - verify-main-hotfix
+
+jobs:
+  backend:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Check dependency consistency
+        run: python -m pip check
+
+      - name: Run backend tests
+        run: >-
+          python
+          -W error::DeprecationWarning
+          -W error::FutureWarning
+          -m pytest -q
