@@ -38,3 +38,7 @@ filterwarnings = [
 
 [tool.vercel]
 entrypoint = "app.main:app"
+
+
+[tool.vercel.scripts]
+build = "python scripts/prepare_vercel_runtime.py"
