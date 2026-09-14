@@ -9,8 +9,7 @@ def test_requirements_pin_onnx_runtime_and_exclude_paddlepaddle():
     assert "onnxruntime==1.29.0" in requirements
     assert "paddleocr==3.7.0" in requirements
     assert "paddlex[ocr-core]==3.7.2" in requirements
-    assert "opencv-contrib-python-headless==4.10.0.84" in requirements
-    assert "opencv-contrib-python==4.10.0.84" not in requirements
+    assert "opencv-contrib-python==4.10.0.84" in requirements
     assert not any(line.startswith("paddlepaddle") for line in requirements)
 
 
@@ -36,3 +35,15 @@ def test_pyproject_declares_runtime_and_dev_dependencies_for_hosted_install():
     assert runtime | dev == requirements
     assert "fastapi==0.116.1" in runtime
     assert pyproject["tool"]["vercel"]["entrypoint"] == "app.main:app"
+
+
+def test_vercel_build_replaces_gui_opencv_with_headless_binary():
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "prepare_vercel_runtime.py"
+    ).read_text(encoding="utf-8")
+
+    assert "opencv-contrib-python-headless==4.10.0.84" in script
+    assert "--force-reinstall" in script
+    assert "--no-deps" in script
