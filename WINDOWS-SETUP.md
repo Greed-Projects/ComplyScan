@@ -1,4 +1,4 @@
-# Windows Setup — PackCheck AI v0.8
+# Windows Setup — ComplyScan v0.8
 
 ## Prerequisites
 
