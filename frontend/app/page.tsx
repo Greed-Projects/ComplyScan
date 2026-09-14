@@ -261,7 +261,7 @@ export default function Home() {
     const anchor = document.createElement("a");
     const baseName = result.file_names[0]?.replace(/\.[^.]+$/, "") || "report";
     anchor.href = url;
-    anchor.download = `packcheck-${baseName}${result.image_count > 1 ? `-${result.image_count}-views` : ""}.json`;
+    anchor.download = `complyscan-${baseName}${result.image_count > 1 ? `-${result.image_count}-views` : ""}.json`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -270,8 +270,8 @@ export default function Home() {
     <main>
       <header className="topbar">
         <div className="brand">
-          <div className="brandMark">PX</div>
-          <div><strong>PackCheck AI</strong><span>Legal Metrology screening prototype</span></div>
+          <div className="brandMark">CS</div>
+          <div><strong>ComplyScan</strong><span>Legal Metrology screening prototype</span></div>
         </div>
         <div className="badge">SIH 2026 · PS 26034 · v0.8</div>
       </header>
@@ -281,7 +281,7 @@ export default function Home() {
           <span className="eyebrow">Multi-view package inspection</span>
           <h1>Combine evidence from every visible side of the same package.</h1>
           <p>
-            Upload front, back, side, seal or bottom views together. PackCheck runs computer vision and OCR per image, then fuses declarations into one auditable Legal Metrology inspection without silently resolving conflicting values.
+            Upload front, back, side, seal or bottom views together. ComplyScan runs computer vision and OCR per image, then fuses declarations into one auditable Legal Metrology inspection without silently resolving conflicting values.
           </p>
           <div className="techRow">
             <span>PP-OCRv6 · ONNX Runtime</span><span>CV + image variants</span><span>Direct recognition fallback</span><span>Cross-image evidence fusion</span><span>Versioned LMPC profile</span>
