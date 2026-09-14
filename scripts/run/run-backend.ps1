@@ -15,7 +15,7 @@ try {
             "--port", "8000",
             "--ws", "none"
         ) `
-        -Description "PackCheck backend"
+        -Description "ComplyScan backend"
 }
 finally {
     Pop-Location
