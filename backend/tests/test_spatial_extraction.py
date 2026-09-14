@@ -10,7 +10,7 @@ def region(
     region_id: str,
     text: str,
     bbox: list[float],
-    confidence: float = 0.95,
+    confidence: float,
 ) -> OcrRegion:
     x, y, width, height = bbox
     return OcrRegion(
@@ -27,62 +27,228 @@ def region(
     )
 
 
-@pytest.mark.parametrize("seed", range(6))
-def test_sattu_landscape_priority_fields_use_geometry_not_serialization_order(seed):
-    regions = [
-        region("nutrition-carb", "58.86g", [0.49, 0.48, 0.06, 0.02], 0.99),
-        region("nutrition-protein", "23.97g", [0.51, 0.51, 0.06, 0.02], 0.98),
-        region("net-label", "Net Wt.", [0.3326, 0.5819, 0.0621, 0.0131], 0.945),
-        region("month-label", "MTH.OF PACK", [0.4678, 0.5788, 0.0776, 0.0156], 0.916),
-        region("mrp-label", "M.R.PRs", [0.5732, 0.5806, 0.0588, 0.0113], 0.955),
-        region("barcode", "81908008806049", [0.1630, 0.5888, 0.0266, 0.0975], 0.975),
-        region("net-value", "500g.", [0.3304, 0.5956, 0.0721, 0.0200], 0.999),
-        region("lot-value", "B/1", [0.4368, 0.6019, 0.0266, 0.0137], 0.67),
-        region("month-value", "AUGUST/2026", [0.4767, 0.6006, 0.0831, 0.0131], 0.956),
-        region("mrp-noise", "00", [0.6131, 0.6006, 0.0233, 0.0150], 0.77),
+def sattu_landscape_regions() -> list[OcrRegion]:
+    """Exact critical OCR regions recorded from Sattu Landscape.jpeg."""
+
+    return [
+        region(
+            "image-1:r31",
+            "58.86g",
+            [
+                0.4933481152993348,
+                0.436875,
+                0.019955654101995568,
+                0.029374999999999984,
+            ],
+            0.9198039174079895,
+        ),
+        region(
+            "image-1:r39",
+            "Net Wt.",
+            [
+                0.3325942350332594,
+                0.581875,
+                0.062084257206208415,
+                0.013124999999999942,
+            ],
+            0.9454150795936584,
+        ),
+        region(
+            "image-1:r40",
+            "Lot No.",
+            [
+                0.4090909090909091,
+                0.5825,
+                0.04212860310421285,
+                0.011874999999999969,
+            ],
+            0.9252004623413086,
+        ),
+        region(
+            "image-1:r41",
+            "MTH.OF PACK",
+            [
+                0.4678492239467849,
+                0.57875,
+                0.0776053215077605,
+                0.015625,
+            ],
+            0.9161772131919861,
+        ),
+        region(
+            "image-1:r42",
+            "M.R.PRs",
+            [
+                0.573170731707317,
+                0.580625,
+                0.058758314855875904,
+                0.011250000000000093,
+            ],
+            0.9553483128547668,
+        ),
+        region(
+            "image-1:r43",
+            "81908008806049",
+            [
+                0.1629711751662971,
+                0.58875,
+                0.026607538802660757,
+                0.09750000000000003,
+            ],
+            0.975283682346344,
+        ),
+        region(
+            "image-1:r44",
+            "500g.",
+            [
+                0.3303769401330377,
+                0.595625,
+                0.07206208425720623,
+                0.020000000000000018,
+            ],
+            0.9999771118164062,
+        ),
+        region(
+            "image-1:r46",
+            "B/1",
+            [
+                0.43680709534368073,
+                0.601875,
+                0.026607538802660757,
+                0.013749999999999929,
+            ],
+            0.670083224773407,
+        ),
+        region(
+            "image-1:r47",
+            "AUGUST/2026",
+            [
+                0.47671840354767187,
+                0.600625,
+                0.08314855875831478,
+                0.013125000000000053,
+            ],
+            0.9557490944862366,
+        ),
+        region(
+            "image-1:r49",
+            "00",
+            [
+                0.6130820399113082,
+                0.600625,
+                0.02328159645232819,
+                0.015000000000000013,
+            ],
+            0.772793710231781,
+        ),
     ]
+
+
+def sattu_portrait_regions() -> list[OcrRegion]:
+    """Exact critical OCR regions recorded from Sattu Portrait.jpeg."""
+
+    return [
+        region(
+            "image-1:r19",
+            "AGusT/au26",
+            [
+                0.5931263858093127,
+                0.430625,
+                0.026607538802660757,
+                0.05625000000000002,
+            ],
+            0.7769055366516113,
+        ),
+        region(
+            "image-1:r22",
+            "23.97g",
+            [
+                0.27605321507760533,
+                0.450625,
+                0.058758314855875904,
+                0.013125000000000053,
+            ],
+            0.8941797614097595,
+        ),
+        region(
+            "image-1:r38",
+            "5.12g",
+            [
+                0.2860310421286031,
+                0.52125,
+                0.04545454545454547,
+                0.011249999999999982,
+            ],
+            0.949975311756134,
+        ),
+        region(
+            "image-1:r39",
+            "Ne W",
+            [
+                0.5521064301552107,
+                0.535625,
+                0.027716186252771613,
+                0.03937499999999994,
+            ],
+            0.8348160982131958,
+        ),
+        region(
+            "image-1:r40",
+            "500g.",
+            [
+                0.5753880266075388,
+                0.53,
+                0.045454545454545414,
+                0.046875,
+            ],
+            0.9880223274230957,
+        ),
+    ]
+
+
+@pytest.mark.parametrize("seed", range(8))
+def test_real_sattu_landscape_geometry_not_serialization_order(seed):
+    regions = sattu_landscape_regions()
     random.Random(seed).shuffle(regions)
 
     text = "\n".join(item.text for item in regions)
     declarations = {item.key: item for item in extract_declarations(text, regions)}
 
-    assert declarations["net_quantity"].value == "500 g"
-    assert declarations["net_quantity"].attributes["amount"] == "500"
-    assert declarations["net_quantity"].attributes["extraction_strategy"] == (
-        "spatial_label_value"
-    )
-    assert set(declarations["net_quantity"].region_ids) == {"net-label", "net-value"}
+    net_quantity = declarations["net_quantity"]
+    assert net_quantity.value == "500 g"
+    assert net_quantity.attributes["amount"] == "500"
+    assert net_quantity.attributes["unit"] == "g"
+    assert net_quantity.attributes["extraction_strategy"] == "spatial_label_value"
+    assert set(net_quantity.region_ids) == {"image-1:r39", "image-1:r44"}
 
-    assert declarations["month_year"].value == "08/2026"
-    assert declarations["month_year"].attributes["month"] == "08"
-    assert declarations["month_year"].attributes["year"] == "2026"
-    assert set(declarations["month_year"].region_ids) == {
-        "month-label",
-        "month-value",
-    }
+    month_year = declarations["month_year"]
+    assert month_year.value == "08/2026"
+    assert month_year.attributes["month"] == "08"
+    assert month_year.attributes["year"] == "2026"
+    assert month_year.attributes["extraction_strategy"] == "spatial_label_value"
+    assert set(month_year.region_ids) == {"image-1:r41", "image-1:r47"}
 
-    # The 14-digit barcode must never be promoted to MRP merely because OCR
-    # serialized it after the MRP label.
+    # The recorded 14-digit barcode is geometrically far from the MRP label and
+    # is also outside the plausible MRP numeric shape. It must never be promoted.
     assert "mrp" not in declarations
 
 
-def test_sattu_portrait_tolerates_ne_w_ocr_label_for_net_weight():
-    regions = [
-        region("nutrition", "23.97g", [0.15, 0.46, 0.06, 0.02], 0.98),
-        region("net-label", "Ne W", [0.5521, 0.5356, 0.0277, 0.0394], 0.835),
-        region("net-value", "500g.", [0.5754, 0.5300, 0.0455, 0.0469], 0.988),
-    ]
+@pytest.mark.parametrize("seed", range(8))
+def test_real_sattu_portrait_geometry_recovers_500g_not_nutrition(seed):
+    regions = sattu_portrait_regions()
+    random.Random(seed).shuffle(regions)
 
-    declarations = {item.key: item for item in extract_declarations(
-        "23.97g\nNe W\n500g.",
-        regions,
-    )}
+    text = "\n".join(item.text for item in regions)
+    declarations = {item.key: item for item in extract_declarations(text, regions)}
 
-    assert declarations["net_quantity"].value == "500 g"
-    assert set(declarations["net_quantity"].region_ids) == {
-        "net-label",
-        "net-value",
-    }
+    net_quantity = declarations["net_quantity"]
+    assert net_quantity.value == "500 g"
+    assert set(net_quantity.region_ids) == {"image-1:r39", "image-1:r40"}
+
+    # The portrait OCR contains a damaged-looking "AGusT/au26" region but no
+    # reliable packing/manufacturing label anchor. Do not invent a legal date.
+    assert "month_year" not in declarations
+    assert "mrp" not in declarations
 
 
 def test_unlabelled_nutrition_value_is_not_inferred_as_net_quantity():
@@ -113,10 +279,13 @@ def test_spatial_mrp_prefers_nearby_price_and_rejects_far_barcode():
         region("barcode", "81908008806049", [0.08, 0.54, 0.10, 0.025], 0.99),
     ]
 
-    declarations = {item.key: item for item in extract_declarations(
-        "MRP Rs.\n60.00\nInclusive of all taxes\n81908008806049",
-        regions,
-    )}
+    declarations = {
+        item.key: item
+        for item in extract_declarations(
+            "MRP Rs.\n60.00\nInclusive of all taxes\n81908008806049",
+            regions,
+        )
+    }
 
     mrp = declarations["mrp"]
     assert mrp.value == "INR 60.00"
