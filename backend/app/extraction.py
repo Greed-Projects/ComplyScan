@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Callable, Iterable
 
 from .models import ExtractedDeclaration, OcrRegion
+from .spatial_extraction import extract_spatial_fields
 
 
 @dataclass(frozen=True, slots=True)
@@ -151,7 +152,6 @@ def _extract_commodity_name(text: str) -> ExtractionCandidate | None:
 def _extract_net_quantity(text: str) -> ExtractionCandidate | None:
     patterns = (
         r"(?:net\s*(?:qty|quantity|wt|weight)|contents?)\s*[:\-]?\s*(?P<amount>\d+(?:\.\d+)?)\s*(?P<unit>kg|g|mg|l|ml|cl|pcs?|pieces?|n)\b",
-        r"(?m)^\s*(?P<amount>\d+(?:\.\d+)?)\s*(?P<unit>kg|g|mg|l|ml|cl)\s*$",
     )
     for index, pattern in enumerate(patterns):
         match = re.search(pattern, text, flags=re.IGNORECASE)
@@ -164,7 +164,7 @@ def _extract_net_quantity(text: str) -> ExtractionCandidate | None:
             return ExtractionCandidate(
                 value=f"{amount} {normalized_unit}",
                 evidence=_line_evidence(text, match.start()),
-                confidence=0.94 if index == 0 else 0.82,
+                confidence=0.94,
                 attributes={"amount": amount, "unit": normalized_unit},
             )
     return None
@@ -190,8 +190,8 @@ def _mrp_attributes(text: str, match: re.Match[str], amount: str, currency: str 
 
 def _extract_mrp(text: str) -> ExtractionCandidate | None:
     currency_patterns = (
-        r"(?:\bmrp\b|m\.?r\.?p\.?)\s*(?::|-)?\s*(?P<currency>₹|rs\.?|inr)\s*(?P<amount>\d+(?:\.\d{1,2})?)",
-        r"maximum\s+retail\s+price\s*(?::|-)?\s*(?P<currency>₹|rs\.?|inr)\s*(?P<amount>\d+(?:\.\d{1,2})?)",
+        r"(?:\bmrp\b|m\.?r\.?p\.?)[ \t]*(?::|-)?[ \t]*(?P<currency>₹|rs\.?|inr)[ \t]*(?P<amount>\d{1,7}(?:\.\d{1,2})?)",
+        r"maximum\s+retail\s+price[ \t]*(?::|-)?[ \t]*(?P<currency>₹|rs\.?|inr)[ \t]*(?P<amount>\d{1,7}(?:\.\d{1,2})?)",
     )
     for pattern in currency_patterns:
         match = re.search(pattern, text, flags=re.IGNORECASE)
@@ -208,8 +208,8 @@ def _extract_mrp(text: str) -> ExtractionCandidate | None:
             )
 
     fallback_patterns = (
-        r"(?:\bmrp\b|m\.?r\.?p\.?)\s*(?::|-)?\s*(?P<amount>\d+(?:\.\d{1,2})?)",
-        r"maximum\s+retail\s+price\s*(?::|-)?\s*(?P<amount>\d+(?:\.\d{1,2})?)",
+        r"(?:\bmrp\b|m\.?r\.?p\.?)[ \t]*(?::|-)?[ \t]*(?P<amount>\d{1,7}(?:\.\d{1,2})?)",
+        r"maximum\s+retail\s+price[ \t]*(?::|-)?[ \t]*(?P<amount>\d{1,7}(?:\.\d{1,2})?)",
     )
     for pattern in fallback_patterns:
         match = re.search(pattern, text, flags=re.IGNORECASE)
@@ -399,12 +399,25 @@ def extract_declarations(
 ) -> list[ExtractedDeclaration]:
     text = normalize_ocr_text(raw_text)
     region_list = list(regions)
+    spatial_fields = extract_spatial_fields(region_list)
     declarations: list[ExtractedDeclaration] = []
 
     for key, label, extractor in EXTRACTORS:
-        candidate = extractor(text)
-        if not candidate:
-            continue
+        spatial_candidate = spatial_fields.get(key)
+        if spatial_candidate is not None:
+            candidate = ExtractionCandidate(
+                value=spatial_candidate.value,
+                evidence=spatial_candidate.evidence,
+                confidence=spatial_candidate.confidence,
+                attributes=spatial_candidate.attributes,
+            )
+            region_ids = list(spatial_candidate.region_ids)
+        else:
+            candidate = extractor(text)
+            if not candidate:
+                continue
+            region_ids = matching_region_ids(candidate.evidence, region_list)
+
         declarations.append(
             ExtractedDeclaration(
                 key=key,
@@ -413,7 +426,7 @@ def extract_declarations(
                 evidence=candidate.evidence,
                 confidence=candidate.confidence,
                 attributes=candidate.attributes,
-                region_ids=matching_region_ids(candidate.evidence, region_list),
+                region_ids=region_ids,
             )
         )
 
