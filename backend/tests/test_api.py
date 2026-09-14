@@ -313,3 +313,23 @@ async def test_per_image_endpoint_rejects_invalid_image_id(monkeypatch):
 
     assert response.status_code == 400
     assert "image_id" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_vercel_frontend_origin_is_allowed_by_cors():
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.options(
+            "/api/analyze/fuse",
+            headers={
+                "Origin": "https://complyscan-abc123-user.vercel.app",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == (
+        "https://complyscan-abc123-user.vercel.app"
+    )
