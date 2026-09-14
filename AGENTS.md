@@ -46,6 +46,21 @@ Deprecation warnings are defects to investigate, not output to ignore.
 - Preserve `package-lock.json` once generated; use `npm ci` for subsequent clean installs.
 - If a third-party transitive dependency emits a deprecation warning, identify which package/version causes it before deciding on a change.
 
+## Sample image contract
+- The canonical prototype/demo image directory is root `samples/`.
+- Use `samples/sample-label.png` for OCR warm-up/runtime verification.
+- Difficult-image regression samples also live under `samples/`; do not recreate duplicate copies under `backend/tests/fixtures/`.
+- Tests, setup scripts, and verification scripts must resolve sample files from the canonical `samples/` directory.
+- Do not add experimental or known-failing images to `samples/` for the v0.8 demo baseline.
+
+## Deployment contract
+- Vercel hosts the Next.js frontend from `frontend/`.
+- The FastAPI + PaddleOCR/ONNX Runtime backend remains a separate Python service.
+- Frontend backend routing is configured with `NEXT_PUBLIC_API_URL`.
+- Backend CORS deployment origins are configured with `PACKCHECK_ALLOWED_ORIGINS`.
+- Preserve local-development defaults while keeping deployment configuration environment-driven.
+- Read `VERCEL-DEPLOYMENT.md` before changing deployment topology.
+
 ## OCR contract
 Keep OCR behind `OcrEngine` and preserve:
 - recognized text,
@@ -67,7 +82,7 @@ Backend:
 1. `backend\.venv\Scripts\python.exe -m pip check`
 2. `backend\.venv\Scripts\python.exe scripts\verify_ocr_runtime.py`
 3. `backend\.venv\Scripts\python.exe -W error::DeprecationWarning -W error::FutureWarning -m pytest -q`
-4. For OCR changes: warm-up/test `sample-label.png`.
+4. For OCR changes: warm-up/test `samples/sample-label.png`.
 
 Frontend:
 1. `npm run typecheck`
