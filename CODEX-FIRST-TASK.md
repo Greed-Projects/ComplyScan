@@ -2,7 +2,7 @@
 
 Paste this into Codex after opening the repository root in VS Code:
 
-> Read `AGENTS.md`, `README.md`, `WINDOWS-SETUP.md`, `CHANGELOG.md`, and the complete repository before changing anything.
+> Read `AGENTS.md`, `README.md`, `WINDOWS-SETUP.md`, `VERCEL-DEPLOYMENT.md`, `CHANGELOG.md`, and the complete repository before changing anything.
 >
 > This machine was recently reinstalled. There are no previous project files, virtual environments, or OCR model caches to rely on.
 >
@@ -22,7 +22,8 @@ Paste this into Codex after opening the repository root in VS Code:
 > 5. Do not suppress any deprecation/future warning to get setup green. If one occurs, identify the package/API and fix the underlying cause if a stable supported path exists.
 > 6. Verify exact pinned OCR package versions and `CPUExecutionProvider`.
 > 7. Allow PP-OCRv6 medium ONNX models to download because this OS has no old cache.
-> 8. Run `pip check`, all backend tests, OCR warm-up on `sample-label.png`, frontend typecheck, ESLint, and production build.
-> 9. Review npm output specifically for `npm warn deprecated`. Do not call setup clean if such a warning remains.
-> 10. Do not redesign or add features yet.
-> 11. Report exact commands, warnings, changes, package versions, ONNX providers, tests, and build results.
+> 8. Confirm the canonical sample directory is root `samples/`, with no duplicate package-image fixtures under `backend/tests/fixtures/`.
+> 9. Run `pip check`, all backend tests, OCR warm-up on `samples/sample-label.png`, frontend typecheck, ESLint, and production build.
+> 10. Review npm output specifically for `npm warn deprecated`. Do not call setup clean if such a warning remains.
+> 11. Do not redesign or add features yet.
+> 12. Report exact commands, warnings, changes, package versions, ONNX providers, tests, and build results.
