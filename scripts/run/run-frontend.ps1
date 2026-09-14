@@ -7,7 +7,7 @@ try {
     Invoke-Checked `
         -Command "npm.cmd" `
         -Arguments @("run", "dev") `
-        -Description "PackCheck frontend"
+        -Description "ComplyScan frontend"
 }
 finally {
     Pop-Location
