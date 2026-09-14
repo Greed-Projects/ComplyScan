@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import tempfile
 import threading
 import warnings
@@ -8,6 +9,16 @@ from typing import Any
 
 from ..vision.image_io import load_oriented_rgb_image
 from .base import OCRResult, OCRTextRegion
+
+
+def _configure_paddlex_runtime() -> None:
+    """Use Vercel's writable /tmp directory for PaddleX model/cache files."""
+    if not os.getenv("VERCEL"):
+        return
+
+    os.environ.setdefault("PADDLE_PDX_CACHE_HOME", "/tmp/complyscan-paddlex")
+    os.environ.setdefault("PADDLE_PDX_MODEL_SOURCE", "bos")
+    os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "1")
 
 
 class PaddleOcrOnnxEngine:
@@ -53,6 +64,7 @@ class PaddleOcrOnnxEngine:
                     f"Available providers: {available}"
                 )
 
+            _configure_paddlex_runtime()
             try:
                 from paddleocr import PaddleOCR
             except ImportError as exc:  # pragma: no cover - environment specific
@@ -102,6 +114,7 @@ class PaddleOcrOnnxEngine:
                     f"Available providers: {available}"
                 )
 
+            _configure_paddlex_runtime()
             try:
                 from paddleocr import TextRecognition
             except ImportError as exc:  # pragma: no cover - environment specific
