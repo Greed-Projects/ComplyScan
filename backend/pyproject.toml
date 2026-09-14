@@ -1,9 +1,14 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "complyscan-api"
 version = "0.8.0"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "fastapi==0.116.1",
+    "uvicorn==0.35.0",
     "python-multipart==0.0.20",
     "Pillow==11.3.0",
     "paddleocr==3.7.0",
@@ -13,6 +18,15 @@ dependencies = [
     "numpy==2.3.5",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.2",
+    "httpx==0.28.1",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
 [tool.pytest.ini_options]
 addopts = "--strict-config"
 pythonpath = ["."]
@@ -21,7 +35,6 @@ filterwarnings = [
     "error::DeprecationWarning",
     "error::FutureWarning",
 ]
-
 
 [tool.vercel]
 entrypoint = "app.main:app"
