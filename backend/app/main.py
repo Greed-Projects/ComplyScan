@@ -46,7 +46,7 @@ _allowed_origins = [
 
 _allowed_origin_regex = os.getenv(
     "COMPLYSCAN_ALLOWED_ORIGIN_REGEX",
-    r"https://complyscan(?:-[a-z0-9-]+)?\\.vercel\\.app",
+    r"https://complyscan(?:-[a-z0-9-]+)?\.vercel\.app",
 )
 
 app.add_middleware(
