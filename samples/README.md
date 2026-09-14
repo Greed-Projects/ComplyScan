@@ -1,4 +1,4 @@
-# PackCheck-AI Samples
+# ComplyScan Samples
 
 This folder contains the package images kept for the v0.8 prototype demonstration.
 
