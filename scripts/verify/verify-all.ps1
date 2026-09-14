@@ -6,7 +6,7 @@ $FrontendVerifier = Join-Path $PSScriptRoot "verify-frontend.ps1"
 
 Write-Host ""
 Write-Host "======================================="
-Write-Host " PackCheck AI - Full Verification"
+Write-Host " ComplyScan - Full Verification"
 Write-Host "======================================="
 
 & $BackendVerifier
