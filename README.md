@@ -201,8 +201,14 @@ FastAPI / Python 3.13
     |      +-- MRP/unit-price candidate disambiguation
     |      +-- consensus and coordinate provenance
     |
+    +-- app/spatial_extraction.py
+    |      +-- geometry-aware label/value pairing
+    |      +-- Net Quantity / Month-Year / MRP candidate filtering
+    |      +-- barcode-like MRP rejection
+    |
     +-- app/extraction.py
     |      +-- declaration-specific structured facts
+    |      +-- spatial-first extraction with conservative text fallback
     |
     +-- app/inspection.py
     |      +-- cross-image fact fusion
