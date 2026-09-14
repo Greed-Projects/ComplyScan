@@ -1,4 +1,4 @@
-# PackCheck AI — SIH 2026 PS 26034 Prototype v0.8
+# ComplyScan — SIH 2026 PS 26034 Prototype v0.8
 
 A focused working prototype for AI-assisted screening of packaged-commodity labels under India’s Legal Metrology (Packaged Commodities) Rules framework.
 
@@ -19,7 +19,7 @@ The verified OCR runtime remains **PaddleOCR models through ONNX Runtime**, CPU-
 
 ### OCR models and image-preprocessing ensemble
 
-PackCheck v0.8 uses **two actual OCR models**:
+ComplyScan v0.8 uses **two actual OCR models**:
 
 - `PP-OCRv6_medium_det` — text detection
 - `PP-OCRv6_medium_rec` — text recognition
@@ -56,7 +56,7 @@ What they mean:
 - **Adaptive thresholding** — locally calculated binary foreground/background separation.
 - **Line localization** — isolates the strongest horizontal text band before recognition.
 
-If the wide text-line views are still unreliable, PackCheck creates overlapping spatial-attention tiles:
+If the wide text-line views are still unreliable, ComplyScan creates overlapping spatial-attention tiles:
 
 ```text
 attention-01-clahe
