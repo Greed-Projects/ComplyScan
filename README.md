@@ -17,6 +17,71 @@ The verified OCR runtime remains **PaddleOCR models through ONNX Runtime**, CPU-
 
 **PaddlePaddle and Tesseract are not required.**
 
+### OCR models and image-preprocessing ensemble
+
+PackCheck v0.8 uses **two actual OCR models**:
+
+- `PP-OCRv6_medium_det` — text detection
+- `PP-OCRv6_medium_rec` — text recognition
+
+Both execute through **ONNX Runtime on CPU**. The targeted detector-free recovery path reuses `PP-OCRv6_medium_rec` directly after computer vision has already localized a likely text line.
+
+The other names shown in OCR recovery diagnostics are **image-preprocessing variants, not additional AI models**. They are generated with OpenCV before OCR so faint, low-contrast, inverted-polarity, glossy, or dot-matrix printing can be presented to the same OCR model in several useful representations.
+
+Normal preprocessing ensemble:
+
+```text
+full-original
+full-clahe
+
+line-original
+line-clahe
+line-clahe-inverted
+line-gamma
+line-gamma-inverted
+line-tophat
+line-tophat-inverted
+line-adaptive
+```
+
+What they mean:
+
+- **Original** — unchanged crop, optionally resized for OCR.
+- **CLAHE** — Contrast Limited Adaptive Histogram Equalization for local contrast enhancement.
+- **Inverted / polarity inversion** — OpenCV bitwise inversion for light-on-dark versus dark-on-light text.
+- **Gamma correction** — boosts faint text under difficult illumination.
+- **Gamma + inverted** — gamma-enhanced text with reversed polarity.
+- **Top-hat morphology** — emphasizes small bright structures such as faint dot-matrix characters on dark packaging.
+- **Top-hat + inverted** — morphological enhancement followed by polarity inversion.
+- **Adaptive thresholding** — locally calculated binary foreground/background separation.
+- **Line localization** — isolates the strongest horizontal text band before recognition.
+
+If the wide text-line views are still unreliable, PackCheck creates overlapping spatial-attention tiles:
+
+```text
+attention-01-clahe
+attention-01-gamma-inverted
+attention-02-clahe
+attention-02-gamma-inverted
+...
+```
+
+For detector-free direct recognition, the same localized representations are passed straight to the recognition model and appear in diagnostics with the `direct-` prefix, for example:
+
+```text
+direct-line-original
+direct-line-clahe
+direct-line-clahe-inverted
+direct-line-gamma-inverted
+direct-attention-01-clahe
+direct-attention-01-gamma-inverted
+...
+```
+
+A concise description of the OCR stack is therefore:
+
+> **PP-OCRv6 Medium + multi-variant computer-vision preprocessing ensemble**
+
 ## v0.8 multi-image package inspection
 
 A physical package is no longer assumed to fit in one photograph. The API and UI accept up to six views of the same package and produce one combined inspection.
